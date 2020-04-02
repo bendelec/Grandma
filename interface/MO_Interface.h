@@ -66,7 +66,7 @@ public:
    * comment received by the client library in a protocol session with the DM backend.
    *
    * @param[in] node_path - path (relative to this MO's root) of the node to update
-   * @return Shall return true if the node was successfully removed OR never existed. False if deletion of the node was not possible.
+   * @return Shall return true if the node was successfully updated, false if updating was not possible
    */
   virtual bool set_val(const std::string node_path, const std::string data) = 0;
 
@@ -143,15 +143,6 @@ public:
    *  Use currently unclear. May be removed later if not needed
    */
   virtual void close_mo() = 0; // unclear
-
-  /**
-   * @brief callback to read the miid of the MO instance
-   *
-   * The protocol client library will call this to retrieve the miid of a given MO instance.
-   * The MO classes implementing this interface are responsible for ensuring that miid's are 
-   * unique between all instances of this MO type.
-   */
-  virtual std::string miid() const = 0;
 
   /**
    * @provide json object for MO content serialization
