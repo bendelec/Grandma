@@ -27,7 +27,7 @@ public:
 
   /**
    *  @{
-   *  (1) callbacks called by the protocol client library as a direct result of protocol commands
+   *  (1) callbacks called by the protocol client library, usually as a direct result of protocol commands
    */
   
   /**
@@ -51,7 +51,7 @@ public:
    *				client will respond to backend GET commands with "204 - No content".
    *				TODO: define behaviour for HPUT and HPOST calls if not valid_data
    *				
-   * @return Shall return the current value of the node specified, or undefined if node_exists of valid_data are set to false
+   * @return Must return the current value of the node specified unless node_exists or valid_data are set to false
    *
    * This is deliberately not declared const to allow implementation of side effects in the
    * MO class
@@ -144,14 +144,6 @@ public:
    */
   virtual void close_mo() = 0; // unclear
 
-  /**
-   * @provide json object for MO content serialization
-
-   * This shall return a JSON object suitable for use in serialization according to the format
-   * described in OMA-DM Protocol Spec V2.0 section 7.2.1.4 - management object serialization.
-   * The output of this method shall correspond to the "MOData" object in that specification.
-   */
-  virtual nlohmann::json serialize_json() const = 0;
 
   /**
    * @}
