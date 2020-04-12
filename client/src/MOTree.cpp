@@ -15,6 +15,33 @@ namespace Grandma {
 using namespace nlohmann;
 
   /**
+   * Set a node in a MO instance
+   *
+   * The actual work is done in the MOHandler, this will just select the correct
+   * handler instance for the given urn (see uri parameter) and pass on miid/path
+   * to the node_set method of the MOHandler
+   *
+   * @param[in] uri - "<urn>/<miid>/<path>"
+   * @param[in] modata - json object with mo data serialization according to protocol standard
+   * @return true on success
+   *
+   * TODO: need to support condition reporting by additional output parameters, similar
+   * to what he get/set methods in MO::Interface support, so we can have proper response
+   * codes for different error cases
+   **/
+  bool MOTree::node_set(const std::string uri, const json modata) {
+    auto delim = uri.find("/");
+    std::string urn = uri.substr(0, delim);
+    std::string path = uri.substr(delim);
+
+    auto mo = MOs.find(urn);
+    if(mo == MOs.end()) {
+      return false;
+    }
+    return mo->second.node_set(path, modata);
+  }
+
+  /**
    * Register a new MO Type and its corresponding DDF file
    *
    * This needs to be called before adding an MO instance of the respective type.
@@ -30,22 +57,19 @@ using namespace nlohmann;
    * if called with an already registered urn with a different filename (inconsistent
    * double-registration (TODO: not currently implemented)
    */
-  bool MOTree::register_DDF(std::string urn, std::string filename, std::string ddf_url) 
+  bool MOTree::register_DDF(const std::string urn, const std::string filename, const std::string ddf_url) 
   {
-    (void) filename;
+    if(MOs.find(urn) == MOs.end()) {
+      std::cout << "Registering DDF File " << filename << " for " << urn << std::endl;
 
-    // TODO: This is mostly a minimal dummy for now. We should at least open and parse the 
-    // DDF file and check if the <DDFName> in the file, if present, corresponds to the given urn.
-    // unfortunately some ddf files, including from the official oma homepage, seem to be missing
-    // the <DDFName> node. In this case, we should probably trust the user (ouch) and accept the
-    // registration, relying on downstream error tolerance (on node access) to minimize impact 
-    // in case it doesn't match after all.
-    std::string ddf_name = urn;
-
-    if(MOs.find(ddf_name) == MOs.end()) {
-      std::cout << "Registering DDF File " << filename << " for " << ddf_name << std::endl;
-      MOs.insert(std::make_pair(ddf_name, MOType() ));
-      MOs[ddf_name].ddf_url = ddf_url;
+      // TODO reconsider/discuss use of exceptions and proper RAII...
+      MOHandler handler(urn, ddf_url);
+      if(handler.generate_tree_from_ddf(filename)) {
+	      MOs.insert(std::make_pair(urn, handler));
+      } else {
+      	std::cout << "ERROR: DDF file couldn't be parsed - not registering " << ddf_name << std::endl;
+	      return false;
+      }
     } 
     // TODO: should only tolerate double-registration if the same filename is given. For now,
     // silently ignore all double-registration
@@ -62,23 +86,17 @@ using namespace nlohmann;
    *
    * @param[in] urn - corresponding to DDFName in ddf file (ex. "urn:oma:mo:oma-dm-devinfo:1.2")
    * @param[in] pointer to an object implementing MO::Interface that supports an MO according to urn
+   * @param[in] optional miid - user defined miid. if unset, library will assign a unique miid.
    */
-  bool MOTree::add_MO(std::string urn, std::shared_ptr<MO::Interface> mo) 
+  bool MOTree::add_MO(std::string urn, std::shared_ptr<MO::Interface> mo, std::string miid) 
   {
-    if(MOs.find(urn) == MOs.end()) {
+    auto handler = MOs.find(urn);
+    if(handler == MOs.end()) {
       std::cout << "Error: No DDF registered for " << urn << std::endl;
       return false;
-    }
-
-    if(mo->check_ddf_name_compatibility(urn)) {
-      MOs[urn].miids.push_back(mo);
     } else {
-      std::cout << "Error: provided MO object doesn't support " << urn << std::endl;
-      return false;
+      return handler->second.add_instance(mo, miid);
     }
-    // TODO: in this place, call mo.init_mo() or only once all MOs are added on first session start?
-
-    return true;
   }
 
   /**
@@ -92,18 +110,9 @@ using namespace nlohmann;
     json mos;
     // iterate over MO types
     for(auto &MO : MOs) {
-      json mo;
-      if(MO.second.ddf_url != "") {
-	mo["DDF"] = MO.second.ddf_url;
-      }
-      mo["MOID"] = MO.first;
-      // iterate over MO instances (miids)
-      for(auto &MI : MO.second.miids) {
-	mo["MIID"].push_back(MI->miid());
-      }
+      json mo = MO.second.p1_MOS_json();
       mos.push_back(mo);
     }
-
     return mos;
   }
 
@@ -117,15 +126,11 @@ using namespace nlohmann;
    */
   json MOTree::dump_serialized_MOS() 
   const {
-    json mos;
+    json mos = json::array();
     // iterate over MO types
     for(auto &MO : MOs) {
-      for(auto &MI : MO.second.miids) {
-	json mo;
-	mo["MOData"] = MI->serialize_json();
-	mo["ClientURI"] = MO.first + "/" + MI->miid() + "/";
-	mos.push_back(mo);
-      }
+      json mo = MO.second.serialize_MIs();
+      mos.insert(mos.end(), mo.begin(), mo.end());
     }
     return mos;
   }

@@ -37,7 +37,7 @@ std::string StaticData::get_val(const std::string node_path, bool&, bool&) {
 
 bool StaticData::set_val(const std::string node_path, const std::string data) {
   local_set_node(node_path, data, true);
-  return true;;
+  return true;
 }
 
 bool StaticData::remove_node(const std::string node_path) {

@@ -26,33 +26,24 @@
 #include <nlohmann/json.hpp>
 
 #include "MO_Interface.h"
-
+#include "MOHandler.h"
 
 namespace Grandma {
 class MOTree {
 
-  // for each MO Type, store the canonical download URL of the ddf file so it can be 
-  // reported to the backend in the DDF field of the MOS vector entry
-  // and a list of instances of this MO type
-  struct MOType {
-    std::string ddf_url;
-    std::vector<std::shared_ptr<MO::Interface> > miids;
-  };
-
   // the key of the MOs map is the urn as it is defined <DDFName> of the ddf files 
   // root Node. Example is "urn:oma:mo:oma-dm-devinfo:1.2"
-  std::map<std::string, MOType> MOs;
+  std::map<std::string, MOHandler> MOs;
 
 public:
 
-  bool register_DDF(std::string urn, std::string filename, std::string ddf_url = "");
+  bool register_DDF(const std::string urn, const std::string filename, const std::string ddf_url = "");
+  bool add_MO(const std::string urn, std::shared_ptr<MO::Interface> mo, const std::string miid);
 
-  bool add_MO(std::string urn, std::shared_ptr<MO::Interface> mo);
-
-
+  bool node_set(const std::string uri, const nlohmann::json modata);
+  bool node_get(const std::string uri, nlohmann::json &modata); // not const on purpose to allow side effects
 
   nlohmann::json p1_MOS_json() const;
-
   nlohmann::json dump_serialized_MOS() const;
 
 };
