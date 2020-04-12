@@ -7,6 +7,8 @@
 
 #include "Helper.h"
 
+#include <sstream>
+
 namespace Grandma {
 
 std::vector<std::string> Helper::vectorize_path(const std::string path) {
