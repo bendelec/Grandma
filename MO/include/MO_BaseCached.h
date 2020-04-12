@@ -102,9 +102,6 @@ public:
   void local_set_node(const std::string node_path, const std::string data, const bool add_missing_node = false);
   std::string local_get_node(const std::string node_path) const;
 
-  // just a small helper, but could be useful in general, so keep it public (it's const anyway)
-  std::vector<std::string> helper_vectorize_path(std::string path) const;
-
 /** 
  *  @}
  *  @{

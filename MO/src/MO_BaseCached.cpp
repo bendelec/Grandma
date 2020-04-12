@@ -12,6 +12,8 @@
 #include <iostream>
 #include <iomanip>
 
+#include "Helper.h"
+
 namespace Grandma {
 namespace MO {
 
@@ -41,7 +43,7 @@ BaseCached::BaseCached(std::string ddf_filename) {
 void BaseCached::local_set_node(const std::string node_path, const std::string data, const bool add_missing_node) 
 {
   // convert path into a vector of segments ("A/B/C" -> {"A", "B", "C"})
-  const std::vector<std::string> path = helper_vectorize_path(node_path); 
+  const std::vector<std::string> path = Helper::vectorize_path(node_path); 
 
   Node *node = &root; // "iterator" used to point to the current node while descending into the tree
 
@@ -86,40 +88,23 @@ void BaseCached::local_set_node(const std::string node_path, const std::string d
  */
 std::string BaseCached::local_get_node(const std::string node_path) 
 const {
+
   // convert path into a vector of segments ("A/B/C" -> {"A", "B", "C"})
-  const std::vector<std::string> path = helper_vectorize_path(node_path); 
+  const std::vector<std::string> path = Helper::vectorize_path(node_path); 
 
   const Node *node = &root; // "iterator" used to point to the current node while descending into the tree
-  
+
   for(auto segment : path) {
     auto node_it = find_if(node->children.begin(), node->children.end(), 
 			    [&segment](const Node &child){return child.uri == segment;});
     if(node_it == node->children.end()) {
+      std::cout << "Warning: trying to get non-existing node " << node_path << std::endl;
       return "";
     }
     node = &*node_it;
   }
   return node->data;
 }
-
-/**
- * @brief Helper function to split a path string into a vector of its segments
- * 
- * @param[in] path - For example "Foo/Bar/Baz"
- * @return In this example a vector with the elements {"Foo", "Bar", "Baz"}
- */
-std::vector<std::string> BaseCached::helper_vectorize_path(const std::string path) 
-const {
-  std::stringstream ss(path);
-  std::string segment;
-  std::vector<std::string> vectorized;
-
-  while(getline(ss, segment, '/')) {
-    vectorized.push_back(segment);
-  }
-  return vectorized;
-}
-
 
 /**
  * @brief Parse the ddf file and generate empty node structure in MO
@@ -273,7 +258,7 @@ const {
  *
  * Recursive helper function for serialize_json()
  */
-json BaseCached::serialize_children(std::vector<Node> children) \
+json BaseCached::serialize_children(std::vector<Node> children)
 const {
   json json_object;
   for(Node &child : children) {
