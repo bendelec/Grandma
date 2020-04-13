@@ -67,7 +67,7 @@ using namespace nlohmann;
       if(handler.generate_tree_from_ddf(filename)) {
 	      MOs.insert(std::make_pair(urn, handler));
       } else {
-      	std::cout << "ERROR: DDF file couldn't be parsed - not registering " << ddf_name << std::endl;
+      	std::cout << "ERROR: DDF file couldn't be parsed - not registering " << urn << std::endl;
 	      return false;
       }
     } 
