@@ -21,20 +21,43 @@ MOHandler::MOHandler(std::string urn, std::string url) : urn(urn), ddf_url(url),
 // TODO: Not yet doing anything, just an empty method shell to make the linker happy
 // and allow building
 bool MOHandler::node_set(const std::string uri, const json modata) {
+    std::cout << "MOHandler::node_set, uri = " << uri << ", modata:" << std::endl;
+    std::cout << modata.dump(2) << std::endl;
     auto delim = uri.find("/");
     std::string miid = uri.substr(0, delim);
   
     auto mi = instance.find(miid);
     if(mi == instance.end()) {
+      std::cout << "Warning: MOHandler::node_set() - MMO Type " << urn << " has no miid " << miid << std::endl;
       return false;
     }
 
-    auto path = Helper::vectorize_path(uri.substr(delim));
+    Node *node = find_node(Helper::vectorize_path(uri.substr(delim)));
+    if(!node) {
+      std::cout << "Warning: MOHandler::node_set - Node " << uri.substr(delim) << " does not exist in MO type " << urn << std::endl;
+    }
+
+    // TODO - check type, access right, etc...
     
-    (void)modata; (void)path;
+    (void)modata;
+    
       
     return false;
     
+}
+
+MOHandler::Node *MOHandler::find_node(std::vector<std::string> path, Node *node) {
+  if(!node) node = &root;
+  for(auto segment : path) {
+    auto it = find_if(node->children.begin(), node->children.end(),
+          [&segment](const Node &child){return child.uri == segment;});
+    if(it == node->children.end()) {
+      std::cout << "Warning: MOHandler_find_node - node " << node->uri << " has no child " << segment << std::endl;
+      return nullptr;
+    }
+    node = &*it;
+  }
+  return node;
 }
 
 /**

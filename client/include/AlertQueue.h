@@ -46,7 +46,7 @@ class AlertQueue {
 
 public:
 
-  nlohmann::json p1_Alert_json();
+  nlohmann::json package_alert_json();
 
   void add_alert(Alert alert);
 

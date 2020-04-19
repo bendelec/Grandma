@@ -27,6 +27,19 @@ public:
    */
   static std::vector<std::string> vectorize_path(const std::string path);
 
+  struct URL {
+    enum class Protocol {
+      HTTP,
+      HTTPS
+    } protocol;
+    std::string server;
+    int port;
+    std::string path;
+    std::string query;
+
+    bool parse_from_string(std::string s_uri);
+  };
+
 };
 
 } // namespace

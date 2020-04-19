@@ -59,6 +59,8 @@ public:
 
 private:
 
+  Node *find_node(std::vector<std::string> path, Node *node = nullptr);
+
   // TODO: code replication in this methods from MO_BaseCached. Try to refactor without breaking the
   // logical source barrier between library (this) and local application (MO base classes)?
   Node generate_node_from_ddf(const tinyxml2::XMLElement * const xml_node);

@@ -32,10 +32,11 @@ using namespace nlohmann;
   bool MOTree::node_set(const std::string uri, const json modata) {
     auto delim = uri.find("/");
     std::string urn = uri.substr(0, delim);
-    std::string path = uri.substr(delim);
+    std::string path = uri.substr(delim+1);
 
     auto mo = MOs.find(urn);
     if(mo == MOs.end()) {
+      std::cout << "Warning: MOTree::node_set() - MO Type " << urn << " not registered" << std::endl;
       return false;
     }
     return mo->second.node_set(path, modata);

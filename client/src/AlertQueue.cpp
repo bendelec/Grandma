@@ -12,7 +12,7 @@ namespace Grandma {
  
 Alert::Alert(std::string AlertType) : AlertType(AlertType), in_transit(false) {}
 
-json AlertQueue::p1_Alert_json() {
+json AlertQueue::package_alert_json() {
   json alerts;
   for(auto &alert : alert_queue) {
     if(!alert.in_transit) {

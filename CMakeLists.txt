@@ -42,8 +42,8 @@ target_link_libraries(dmclient PRIVATE omadm-client)
 ##
 # Test Armatures
 ##
-#add_executable(test_server "test/server.cpp")
-#target_link_libraries(test_server PRIVATE nlohmann_json::nlohmann_json pthread)
-#set_target_properties(test_server PROPERTIES CXX_STANDARD 14)
-#target_compile_options(test_server PRIVATE -Wall -Wextra)
+add_executable(test_server "test/server.cpp")
+target_link_libraries(test_server PRIVATE nlohmann_json::nlohmann_json pthread)
+set_target_properties(test_server PROPERTIES CXX_STANDARD 14)
+target_compile_options(test_server PRIVATE -Wall -Wextra)
 

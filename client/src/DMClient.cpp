@@ -5,7 +5,7 @@
 
 namespace Grandma {
 
-DMClient::DMClient() : session(motree) {}
+DMClient::DMClient() : command_queue(motree), session(motree, command_queue) {}
 
 /**
  * Pass through to MOTree - see there for documentation
@@ -34,7 +34,7 @@ void DMClient::start_session(bool server_initiated) {
 
   nlohmann::json P1_json;
   P1_json["MOS"] = motree.p1_MOS_json();
-  P1_json["Alert"] = alert_queue.p1_Alert_json();
+  P1_json["Alert"] = alert_queue.package_alert_json();
 
   if(P1_dump_tree) {
     P1_json["MgmtTree"] = motree.dump_serialized_MOS();
@@ -45,7 +45,11 @@ void DMClient::start_session(bool server_initiated) {
   std::string P2_json = session.send_P1(P1_json.dump());
 
   while(session.parse_P2(P2_json)) {
-    P2_json = session.send_P3("");
+    command_queue.do_commands();
+    nlohmann::json p3_json;
+    p3_json["Status"] = command_queue.p3_SC_json();
+    p3_json["Alert"] = alert_queue.package_alert_json();
+    P2_json = session.send_P3(p3_json.dump());
   }
 }
 

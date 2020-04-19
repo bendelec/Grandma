@@ -26,6 +26,7 @@
 
 #include "MOTree.h"
 #include "AlertQueue.h"
+#include "CommandQueue.h"
 #include "Session.h"
 
 namespace Grandma {
@@ -34,9 +35,9 @@ class DMClient {
   std::string DevId;    // TODO: duplicate data with DevInfo MO.... remove once proper handling of DevInfo mandatory MO is finished
 
   MOTree        motree;
+  CommandQueue  command_queue;
   Session       session;
   AlertQueue    alert_queue;
-//  CommandQueue  command_queue; TODO
 
   bool  P1_dump_tree; // See comment on set_P1_dump_tree (in source file)
 
