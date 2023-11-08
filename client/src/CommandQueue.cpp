@@ -3,7 +3,7 @@
 #include <iostream>
 
 #define CPPHTTPLIB_OPENSSL_SUPPORT
-#include <httplib/httplib.h>
+#include <httplib.h>
 
 #include <nlohmann/json.hpp>
 
@@ -39,28 +39,42 @@ void CommandQueue::do_commands() {
 
   void CommandQueue::do_hget(std::vector<std::string> params) {
     Helper::URL serverURL;
-    serverURL.parse_from_string(params[0]);
+    if(!serverURL.parse_from_string(params[0])) {
+      std::cerr << "ERROR: could not parse server URI in HGET command" << std::endl;
+      return;
+    };
+    
     std::string clientURI = params[1];	// TODO: this is actually optional. We need to support client side decision on where to put the downloaded data
     
     std::cout << "IN do_hget. ServerURI = " << params[0] << " - ClientURI = " << clientURI << std::endl;
 
-    
-    std::shared_ptr<httplib::Response> res;
+    std::string rbody;
+    httplib::Result res;
+
     if(serverURL.protocol == Helper::URL::Protocol::HTTPS) {
-      std::cerr << "Opening HTTPS connection" << std::endl;
-      res = httplib::SSLClient(serverURL.server, serverURL.port).Get(serverURL.path.c_str());
+      httplib::SSLClient cli(serverURL.server, serverURL.port);
+      res = cli.Get(serverURL.path.c_str());
+    } else if(serverURL.protocol == Helper::URL::Protocol::HTTP) {
+      httplib::Client cli(serverURL.server, serverURL.port);
+      res = cli.Get(serverURL.path.c_str());
     } else {
-      std::cerr << "Opening HTTP connection" << std::endl;
-      res = httplib::Client(serverURL.server, serverURL.port).Get(serverURL.path.c_str());
+      std::cerr << "ERROR: unsupported protocol in HGET command" << std::endl;
+      return;
     }
 
-    std::cout << "Server response: " << res->status << ": " << std::endl << res->body << std::endl;
+    if(res) {
+      std::cerr << "http result is: " << res->status << std::endl;
+      rbody = res->body;
+    } else {
+      std::cerr << "ERROR: connection to server failed when trying to send HGET command" << std::endl;
+      return;
+    }
 
-    motree.node_set(clientURI, json(res->body));
-
-
-
+    std::cout << "Server response is:" << std::endl << rbody << std::endl;
+      
+    motree.node_set(clientURI, json(rbody));
     responses.push_back(Status(200));
+
   }
 
   json CommandQueue::p3_SC_json() {

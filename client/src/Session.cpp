@@ -3,6 +3,13 @@
 #include <iostream>
 // #include <nlohmann/json.hpp>
 
+#define CPPHTTPLIB_OPENSSL_SUPPORT
+
+#include <httplib.h>
+// httplib includes some arpa stuff, which defines DELETE as a macro, but we use it as a enum value for OMADM commands
+#undef DELETE
+
+
 #include "CommandQueue.h"
 
 #include "base64.h"
@@ -24,11 +31,6 @@ namespace Grandma {
       {"Accept", "application/vnd.oma.dm.request+json"}
     };
     
-
-
-    // temporarily use base64 encoding for testing against TM server
-    std::string p1_base64 = base64_encode(reinterpret_cast<const unsigned char *>(p1_json.c_str()), p1_json.length());
-    // auto res = http_client.Post("path", headers, p1_base64, "application/vnd.oma.dm.initiation+json");
     auto res = http_client.Post("/path", headers, p1_json, "application/vnd.oma.dm.initiation+json");
     
     if(res) {

@@ -4,7 +4,6 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 
 #include <nlohmann/json.hpp>
-#include <httplib/httplib.h>
 
 #include "CommandQueue.h"
 #include "MOTree.h"

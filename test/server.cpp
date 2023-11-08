@@ -1,5 +1,5 @@
 #include <iostream>
-#include <httplib/httplib.h>
+#include <httplib.h>
 #include <nlohmann/json.hpp>
 
 int main() {
@@ -16,7 +16,7 @@ int main() {
 
   svr.Post("/path", [&state](const auto& req, auto &res){
     std::cout << "Received POST from client." << std::endl;
-    std::cout << "Requuest headers are: " << std::endl;
+    std::cout << "Request headers are: " << std::endl;
     for(auto header : req.headers) {
       std::cout << header.first << " : " << header.second << std::endl;
     }
